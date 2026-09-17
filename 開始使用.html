@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="供香港中學生學習及驗證香港身份證檢查數位的互動工具。">
+  <title>香港身份證號碼檢查數位計算器</title>
+  <style>
+    :root {
+      --navy:#12365b; --blue:#1687c8; --sky:#e7f7ff; --cyan:#71d6f5;
+      --purple:#7758d6; --orange:#ef8d2f; --green:#16875b; --red:#c83e50;
+      --ink:#17324d; --muted:#5f7184; --line:#cfe0ed; --white:#fff;
+      --shadow:0 18px 45px rgba(20,68,104,.14);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:
+      radial-gradient(circle at 10% 8%,rgba(113,214,245,.32),transparent 25rem),
+      radial-gradient(circle at 92% 18%,rgba(119,88,214,.12),transparent 24rem),#f7fbfe;min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .shell{width:min(1180px,calc(100% - 28px));margin:auto;padding:28px 0 46px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:26px;margin-bottom:18px}
+    .brand{display:flex;gap:14px;align-items:center}
+    .logo{display:grid;place-items:center;width:56px;height:56px;border-radius:18px;background:linear-gradient(145deg,var(--blue),var(--purple));color:white;font-weight:900;font-size:1.4rem;box-shadow:0 9px 20px rgba(22,135,200,.28)}
+    h1{margin:0;font-size:clamp(1.55rem,3.2vw,2.45rem);line-height:1.15;color:var(--navy)}
+    .subtitle{margin:.35rem 0 0;color:var(--muted);font-size:1.05rem}
+    .privacy-tag{background:white;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-weight:700;color:var(--muted);white-space:nowrap}
+    .workspace{background:rgba(255,255,255,.94);border:1px solid #dcebf4;border-radius:28px;box-shadow:var(--shadow);overflow:hidden}
+    .tabs{display:flex;padding:10px;background:#edf6fb;border-bottom:1px solid var(--line);gap:8px}
+    .tab{flex:1;border:0;background:transparent;border-radius:14px;padding:13px 16px;font-weight:800;color:#537087;min-height:50px}
+    .tab[aria-selected="true"]{background:white;color:var(--blue);box-shadow:0 5px 18px rgba(35,98,138,.12)}
+    .main-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.75fr);min-height:470px}
+    .tool{padding:clamp(22px,4vw,42px)}
+    .guide{position:relative;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(155deg,#e1f6ff 0%,#f0ecff 100%);padding:28px 24px 0;overflow:hidden}
+    .speech{position:relative;background:white;padding:18px 19px;border-radius:20px;box-shadow:0 11px 25px rgba(32,83,119,.13);font-weight:800;line-height:1.55;z-index:1}
+    .speech:after{content:"";position:absolute;right:25%;bottom:-12px;border:12px solid transparent;border-top-color:white;border-bottom:0}
+    .students{display:block;width:100%;max-height:335px;object-fit:contain;object-position:center bottom;margin-top:12px;filter:drop-shadow(0 12px 12px rgba(34,66,93,.15))}
+    .fallback-art{display:grid;place-items:center;height:260px;font-size:5rem;letter-spacing:-1rem;overflow:hidden}
+    .mode-title{margin:0 0 8px;font-size:1.45rem;color:var(--navy)}
+    .hint{margin:0 0 20px;color:var(--muted);line-height:1.6}
+    label{display:block;font-weight:800;margin-bottom:8px}
+    .input-wrap{display:flex;align-items:center;border:2px solid #b9d9ea;background:#fbfdff;border-radius:16px;transition:.2s;overflow:hidden}
+    .input-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px rgba(22,135,200,.13)}
+    .input-wrap span{padding:0 0 0 16px;color:var(--blue);font-weight:900}
+    input{width:100%;border:0;outline:0;background:transparent;padding:15px 16px;font-size:1.22rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--navy)}
+    .button-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+    .btn{border:0;border-radius:13px;padding:12px 18px;font-weight:850;min-height:46px}
+    .primary{background:linear-gradient(135deg,var(--blue),#2469b8);color:white;box-shadow:0 8px 18px rgba(22,135,200,.23)}
+    .secondary{background:#eaf5fb;color:var(--navy)}
+    .ghost{background:white;border:1px solid var(--line);color:var(--muted)}
+    .btn:hover{transform:translateY(-1px)} .btn:active{transform:none}
+    .error{display:none;margin-top:13px;padding:12px 15px;border-radius:12px;background:#fff0f2;color:#9e2637;font-weight:700;border-left:4px solid var(--red)}
+    .error.show{display:block}
+    .results{display:none;margin-top:25px}.results.show{display:block}
+    .step{display:none;animation:rise .35s ease both;margin-top:14px}.step.visible{display:block}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .step-card{padding:17px;border:1px solid var(--line);border-radius:17px;background:#fafdff}
+    .step-card h3{margin:0 0 9px;font-size:1.05rem;color:var(--navy)}
+    .formula{font-size:1.06rem;line-height:1.7;font-weight:750;color:#36536d}
+    .formula strong{color:var(--purple)}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px}
+    table{width:100%;border-collapse:collapse;min-width:520px;background:white}
+    th,td{padding:11px 12px;text-align:center;border-bottom:1px solid #e5eef4}
+    th{background:#eaf6fc;color:var(--navy)}
+    td:first-child{font-weight:900;color:var(--blue)}
+    td:nth-child(2){color:var(--purple);font-weight:750}td:nth-child(3){color:#a95b10;font-weight:750}td:nth-child(4){color:var(--green);font-weight:850}
+    .step-controls{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}.step-controls.show{display:flex}
+    .progress{font-weight:750;color:var(--muted);margin-right:auto}
+    .answer{display:none;margin-top:18px;border-radius:20px;padding:22px;color:white;background:linear-gradient(135deg,#147e59,#21a971);box-shadow:0 14px 28px rgba(22,135,91,.23);animation:pop .38s ease both}
+    .answer.show{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .answer.bad{background:linear-gradient(135deg,#b82f43,#e05768)}
+    @keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+    .answer small{display:block;font-size:.95rem;opacity:.9;margin-bottom:4px}.answer-main{font-weight:900;font-size:clamp(1.35rem,3vw,2rem)}
+    .digit{display:grid;place-items:center;min-width:76px;height:76px;background:white;color:var(--green);border-radius:18px;font-size:2.25rem;font-weight:950}
+    .answer.bad .digit{color:var(--red)}
+    .info{margin-top:18px;background:white;border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 25px rgba(33,82,116,.08);overflow:hidden}
+    summary{cursor:pointer;padding:18px 22px;font-weight:850;color:var(--navy)}
+    .info-body{padding:0 22px 20px;color:var(--muted);line-height:1.75}
+    .notice{margin-top:12px;border-left:4px solid var(--orange);padding:10px 13px;background:#fff8ee;color:#73502b;border-radius:6px 12px 12px 6px}
+    [hidden]{display:none!important}
+    @media(max-width:800px){header{align-items:flex-start}.privacy-tag{display:none}.main-grid{grid-template-columns:1fr}.guide{min-height:300px}.students{max-height:255px;width:min(80%,360px);margin-inline:auto}.tool{padding:24px 18px}.shell{width:min(100% - 16px,700px);padding-top:15px}.workspace{border-radius:20px}.tabs{padding:7px}.tab{padding:11px 7px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true">✓</div><div><h1>香港身份證號碼檢查數位計算器</h1><p class="subtitle">逐步認識 Check Digit 的計算方法</p></div></div>
+      <div class="privacy-tag">🔒 不會儲存輸入資料</div>
+    </header>
+
+    <main class="workspace">
+      <nav class="tabs" aria-label="計算模式">
+        <button class="tab" id="calcTab" role="tab" aria-selected="true" aria-controls="calcPanel">計算檢查數位</button>
+        <button class="tab" id="verifyTab" role="tab" aria-selected="false" aria-controls="verifyPanel">驗證身份證號碼</button>
+      </nav>
+      <div class="main-grid">
+        <section class="tool">
+          <div id="calcPanel" role="tabpanel" aria-labelledby="calcTab">
+            <h2 class="mode-title">找出正確的檢查數位</h2>
+            <p class="hint">輸入 1 或 2 個英文字母及 6 個數字，不要輸入括號內的檢查數位。</p>
+            <label for="calcInput">身份證號碼（不包括檢查數位）</label>
+            <div class="input-wrap"><span aria-hidden="true">ID</span><input id="calcInput" maxlength="10" autocomplete="off" spellcheck="false" placeholder="例如：A123456"></div>
+            <div class="button-row"><button class="btn primary" id="calcBtn">開始計算</button><button class="btn secondary" id="calcExample">試用示例</button><button class="btn ghost" id="calcReset">重新開始</button></div>
+          </div>
+          <div id="verifyPanel" role="tabpanel" aria-labelledby="verifyTab" hidden>
+            <h2 class="mode-title">驗證現有的檢查數位</h2>
+            <p class="hint">可輸入括號、空格或連續格式，系統會自動整理。</p>
+            <label for="verifyInput">完整身份證號碼</label>
+            <div class="input-wrap"><span aria-hidden="true">ID</span><input id="verifyInput" maxlength="13" autocomplete="off" spellcheck="false" placeholder="例如：A123456(3)"></div>
+            <div class="button-row"><button class="btn primary" id="verifyBtn">立即驗證</button><button class="btn secondary" id="verifyExample">試用示例</button><button class="btn ghost" id="verifyReset">重新開始</button></div>
+          </div>
+          <div class="error" id="error" role="alert"></div>
+          <div class="results" id="results" aria-live="polite">
+            <div class="step step-card" data-step="1"><h3>步驟 1：字母轉換成數值</h3><div class="formula" id="letterRule"></div></div>
+            <div class="step step-card" data-step="2"><h3>步驟 2 及 3：配上權重並相乘</h3><div class="table-wrap"><table><thead><tr><th>字元</th><th>數值</th><th>權重</th><th>乘積</th></tr></thead><tbody id="calcRows"></tbody></table></div></div>
+            <div class="step step-card" data-step="3"><h3>步驟 4：把所有乘積加起來</h3><div class="formula" id="sumFormula"></div></div>
+            <div class="step step-card" data-step="4"><h3>步驟 5：進行 Mod 11</h3><div class="formula" id="modFormula"></div></div>
+            <div class="step step-card" data-step="5"><h3>步驟 6：找出檢查數位</h3><div class="formula" id="digitFormula"></div></div>
+            <div class="step-controls" id="stepControls"><span class="progress" id="progress">已顯示 1／5</span><button class="btn primary" id="nextBtn">下一步</button><button class="btn secondary" id="showAllBtn">一次顯示全部</button></div>
+            <div class="answer" id="answer"><div><small id="answerLabel">正確檢查數位</small><div class="answer-main" id="fullId"></div></div><div class="digit" id="digit"></div></div>
+          </div>
+        </section>
+        <aside class="guide" aria-label="學生提示">
+          <div class="speech" id="speech">輸入一個示例，讓我們一起逐步計算！</div>
+          <img class="students" id="students" src="students-guide.png" alt="兩位穿着淺藍色校服的學生一起研究檢查數位" onerror="this.hidden=true;document.getElementById('fallbackArt').hidden=false">
+          <div class="fallback-art" id="fallbackArt" hidden aria-hidden="true">👩🏻‍🎓👨🏻‍🎓</div>
+        </aside>
+      </div>
+    </main>
+    <details class="info"><summary>檢查數位是甚麼？</summary><div class="info-body">檢查數位是利用前面字元計算出來的額外字元，用來協助發現輸入錯誤。香港身份證號碼使用加權計算及 Mod 11；當計算結果為 10 時，檢查數位以 <strong>A</strong> 表示。<div class="notice"><strong>注意：</strong>本工具只檢查號碼的數學格式及檢查數位是否吻合，不能確認號碼是否真實存在，也不能確認任何人的身份。請勿輸入真實個人資料作課堂示範。</div></div></details>
+  </div>
+  <script>
+    /* 香港身份證檢查數位規則：A=10 至 Z=35。雙字母依次乘 9、8；單字母前補空格（值 36）乘 9，字母乘 8；六位數字乘 7 至 2。令總和加檢查數位後可被 11 整除，數值 10 以 A 表示。 */
+    const $=id=>document.getElementById(id);
+    const state={mode:'calc',step:0,data:null};
+    const speeches=['先把英文字母轉成數值！','現在把每個字元乘上權重。','把所有乘積加起來！','看看除以 11 的餘數。','完成！檢查數位找到了！'];
+
+    function clean(text){return text.toUpperCase().replace(/[\s()\-]/g,'')}
+    function letterValue(char){return char.charCodeAt(0)-55}
+    function parseBase(text){
+      const value=clean(text);
+      if(!/^[A-Z]{1,2}\d{6}$/.test(value)) return {error:'請輸入 1 或 2 個英文字母，以及 6 個數字，例如 A123456。'};
+      return {base:value};
+    }
+    function parseFull(text){
+      const value=clean(text);
+      if(!/^[A-Z]{1,2}\d{6}[0-9A]$/.test(value)) return {error:'請輸入完整號碼：1 或 2 個英文字母、6 個數字及檢查數位，例如 A123456(3)。'};
+      return {base:value.slice(0,-1),provided:value.slice(-1)};
+    }
+    function calculate(base){
+      const letters=base.match(/^[A-Z]+/)[0], digits=base.slice(letters.length);
+      const chars=letters.length===1?[' ',letters,...digits]:[...letters,...digits];
+      const values=chars.map(c=>c===' '?36:(/[A-Z]/.test(c)?letterValue(c):Number(c)));
+      const weights=[9,8,7,6,5,4,3,2];
+      const products=values.map((v,i)=>v*weights[i]);
+      const sum=products.reduce((a,b)=>a+b,0), remainder=sum%11, checkValue=(11-remainder)%11;
+      return {base,letters,chars,values,weights,products,sum,remainder,checkValue,digit:checkValue===10?'A':String(checkValue)};
+    }
+    function formatId(base,digit){return `${base}(${digit})`}
+    function showError(message){$('error').textContent=message;$('error').classList.add('show');$('speech').textContent='格式好像有一點問題，看看紅色提示再試一次吧。'}
+    function clearError(){$('error').classList.remove('show');$('error').textContent=''}
+    function buildResults(data,provided){
+      state.data=data; state.step=1; clearError();
+      const letterParts=[...data.letters].map(c=>`${c} = ${letterValue(c)}`);
+      $('letterRule').innerHTML=(data.letters.length===1?'單字母號碼會先補上「空格 = 36」；':'')+letterParts.map(x=>`<strong>${x}</strong>`).join('，')+'。';
+      $('calcRows').innerHTML=data.chars.map((c,i)=>`<tr><td>${c===' '?'空格（補位）':c}</td><td>${data.values[i]}</td><td>${data.weights[i]}</td><td>${data.products[i]}</td></tr>`).join('');
+      $('sumFormula').innerHTML=`${data.products.join(' + ')} = <strong>${data.sum}</strong>`;
+      $('modFormula').innerHTML=`${data.sum} mod 11 = <strong>${data.remainder}</strong>`;
+      const raw=11-data.remainder;
+      let digitExplanation=`11 − ${data.remainder} = <strong>${raw}</strong>`;
+      if(raw===11) digitExplanation+='；結果是 11 時，檢查數位為 <strong>0</strong>';
+      if(raw===10) digitExplanation+='；結果是 10 時，用字母 <strong>A</strong> 表示';
+      $('digitFormula').innerHTML=digitExplanation+'。';
+      document.querySelectorAll('.step').forEach((el,i)=>el.classList.toggle('visible',i===0));
+      $('results').classList.add('show');$('stepControls').classList.add('show');$('answer').className='answer';
+      $('progress').textContent='已顯示 1／5';$('nextBtn').hidden=false;$('showAllBtn').hidden=false;
+      $('speech').textContent=speeches[0];
+      if(provided!==undefined){
+        const correct=provided===data.digit;
+        $('answerLabel').textContent=correct?'✓ 檢查數位正確':'✗ 檢查數位不正確';
+        $('fullId').textContent=correct?formatId(data.base,data.digit):`正確格式：${formatId(data.base,data.digit)}`;
+        $('digit').textContent=`(${data.digit})`;
+        $('answer').dataset.bad=correct?'0':'1';
+      }else{
+        $('answerLabel').textContent='正確檢查數位';$('fullId').textContent=formatId(data.base,data.digit);$('digit').textContent=`(${data.digit})`;$('answer').dataset.bad='0';
+      }
+      $('results').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+    function revealNext(){
+      if(state.step<5){state.step++;document.querySelector(`[data-step="${state.step}"]`).classList.add('visible');$('speech').textContent=speeches[state.step-1];}
+      $('progress').textContent=`已顯示 ${state.step}／5`;
+      if(state.step===5)finishReveal();
+    }
+    function showAll(){document.querySelectorAll('.step').forEach(x=>x.classList.add('visible'));state.step=5;$('speech').textContent=speeches[4];$('progress').textContent='已顯示 5／5';finishReveal()}
+    function finishReveal(){$('nextBtn').hidden=true;$('showAllBtn').hidden=true;$('answer').classList.add('show');if($('answer').dataset.bad==='1')$('answer').classList.add('bad')}
+    function reset(keepMode=true){
+      $('calcInput').value='';$('verifyInput').value='';clearError();$('results').classList.remove('show');$('answer').className='answer';state.step=0;state.data=null;$('speech').textContent='輸入一個示例，讓我們一起逐步計算！';
+      if(keepMode) $(state.mode==='calc'?'calcInput':'verifyInput').focus();
+    }
+    function setMode(mode){state.mode=mode;reset(false);const calc=mode==='calc';$('calcPanel').hidden=!calc;$('verifyPanel').hidden=calc;$('calcTab').setAttribute('aria-selected',calc);$('verifyTab').setAttribute('aria-selected',!calc);$(calc?'calcInput':'verifyInput').focus()}
+    $('calcTab').onclick=()=>setMode('calc');$('verifyTab').onclick=()=>setMode('verify');
+    $('calcBtn').onclick=()=>{const p=parseBase($('calcInput').value);p.error?showError(p.error):buildResults(calculate(p.base))};
+    $('verifyBtn').onclick=()=>{const p=parseFull($('verifyInput').value);p.error?showError(p.error):buildResults(calculate(p.base),p.provided)};
+    $('calcExample').onclick=()=>{$('calcInput').value='A123456';$('calcBtn').click()};
+    $('verifyExample').onclick=()=>{$('verifyInput').value='A123456(3)';$('verifyBtn').click()};
+    $('calcReset').onclick=()=>reset();$('verifyReset').onclick=()=>reset();$('nextBtn').onclick=revealNext;$('showAllBtn').onclick=showAll;
+    ['calcInput','verifyInput'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')$(id==='calcInput'?'calcBtn':'verifyBtn').click()}));
+  </script>
+</body>
+</html>
